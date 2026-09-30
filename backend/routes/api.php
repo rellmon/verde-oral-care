@@ -20,4 +20,13 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/admin/ping', fn () => response()->json(['message' => 'Hello, admin']))
+        ->middleware('role:admin');
+
+    Route::get('/dentist/ping', fn () => response()->json(['message' => 'Hello, dentist or admin']))
+        ->middleware('role:dentist,admin');
+
+    Route::get('/patient/ping', fn () => response()->json(['message' => 'Hello, patient']))
+        ->middleware('role:patient');
 });
