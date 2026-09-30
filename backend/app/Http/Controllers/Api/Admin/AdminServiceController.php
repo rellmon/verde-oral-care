@@ -8,6 +8,7 @@ use App\Http\Resources\AdminServiceResource;
 use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class AdminServiceController extends Controller
 {
@@ -30,5 +31,18 @@ class AdminServiceController extends Controller
         $service->update($request->validated());
 
         return new AdminServiceResource($service->fresh());
+    }
+
+    public function destroy(Service $service): JsonResponse|Response
+    {
+        if ($service->appointments()->exists()) {
+            return response()->json([
+                'message' => 'This service has appointments and cannot be deleted. Deactivate it instead.',
+            ], 409);
+        }
+
+        $service->delete();
+
+        return response()->noContent();
     }
 }

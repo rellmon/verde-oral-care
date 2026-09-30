@@ -32,4 +32,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::get('/services', [AdminServiceController::class, 'index']);
         Route::post('/services', [AdminServiceController::class, 'store']);
         Route::put('/services/{service}', [AdminServiceController::class, 'update']);
+        Route::delete('/services/{service}', [AdminServiceController::class, 'destroy']);
     });
