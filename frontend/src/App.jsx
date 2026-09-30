@@ -8,6 +8,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import DentistDashboard from './pages/dentist/DentistDashboard'
 import PatientDashboard from './pages/patient/PatientDashboard'
 import Services from './pages/Services'
+import AdminServices from './pages/admin/AdminServices'
 
 function App() {
   const { loading } = useAuth()
@@ -32,6 +33,7 @@ function App() {
 
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/services" element={<AdminServices />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
