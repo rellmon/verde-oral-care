@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -79,6 +79,13 @@ export default function Login() {
         >
           {submitting ? 'Logging in...' : 'Log in'}
         </button>
+
+        <p className="text-sm text-center text-gray-600">
+          New patient?{' '}
+          <Link to="/register" className="text-teal-700 underline">
+            Create an account
+          </Link>
+        </p>
       </form>
     </div>
   )
