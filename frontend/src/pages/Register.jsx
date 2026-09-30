@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { dashboardPathFor } from '../utils/roles'
 
 const initialForm = {
   name: '',
@@ -30,8 +31,8 @@ export default function Register() {
     setSubmitting(true)
 
     try {
-      await register(form)
-      navigate('/')
+      const user = await register(form)
+      navigate(dashboardPathFor(user.role))
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors)

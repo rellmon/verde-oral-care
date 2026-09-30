@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { dashboardPathFor } from '../utils/roles'
 
 export default function Login() {
   const { login } = useAuth()
@@ -17,8 +18,8 @@ export default function Login() {
     setSubmitting(true)
 
     try {
-      await login(email, password)
-      navigate('/')
+      const user = await login(email, password)
+      navigate(dashboardPathFor(user.role))
     } catch (err) {
       const message =
         err.response?.data?.errors?.email?.[0] ||

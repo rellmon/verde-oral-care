@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { dashboardPathFor } from '../utils/roles'
 
 export default function Home() {
   const { user, logout } = useAuth()
@@ -13,6 +14,14 @@ export default function Home() {
           <p className="text-gray-700">
             Logged in as <strong>{user.name}</strong> ({user.role})
           </p>
+
+          <Link
+            to={dashboardPathFor(user.role)}
+            className="rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-100"
+          >
+            Go to my dashboard
+          </Link>
+
           <button
             onClick={logout}
             className="rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-700"
