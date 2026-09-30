@@ -33,4 +33,9 @@ class Dentist extends Model
     {
         return $this->hasMany(DentistSchedule::class);
     }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
 }
