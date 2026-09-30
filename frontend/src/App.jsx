@@ -1,8 +1,20 @@
+import { Route, Routes } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
+import Home from './pages/Home'
+import Login from './pages/Login'
+
 function App() {
+  const { loading } = useAuth()
+
+  if (loading) {
+    return <p className="p-6 text-gray-600">Loading...</p>
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-teal-50">
-      <h1 className="text-3xl font-bold text-teal-700">Verde Oral Care</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
   )
 }
 
