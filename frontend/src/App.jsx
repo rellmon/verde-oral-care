@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import DentistDashboard from './pages/dentist/DentistDashboard'
 import PatientDashboard from './pages/patient/PatientDashboard'
+import Services from './pages/Services'
 
 function App() {
   const { loading } = useAuth()
@@ -34,6 +35,8 @@ function App() {
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
+
+      <Route path="/services" element={<Services />} />
     </Routes>
   )
 }

@@ -9,6 +9,10 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-teal-50">
       <h1 className="text-3xl font-bold text-teal-700">Verde Oral Care</h1>
 
+      <Link to="/services" className="text-teal-700 underline">
+        View our services
+      </Link>
+
       {user ? (
         <>
           <p className="text-gray-700">
