@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -12,3 +13,5 @@ Route::get('/ping', function () {
         'message' => 'Verde Oral Care API is running',
     ]);
 });
+
+Route::post('/register', [AuthController::class, 'register']);
