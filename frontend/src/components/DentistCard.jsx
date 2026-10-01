@@ -1,12 +1,5 @@
-function getInitials(name) {
-  return name
-    .replace(/^dr\.?\s+/i, '')
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-}
+import { Link } from 'react-router-dom'
+import { getInitials } from '../utils/names'
 
 export default function DentistCard({ dentist }) {
   return (
@@ -28,6 +21,13 @@ export default function DentistCard({ dentist }) {
       {dentist.biography && (
         <p className="mt-4 line-clamp-3 text-sm text-gray-600">{dentist.biography}</p>
       )}
+
+      <Link
+        to={`/dentists/${dentist.id}`}
+        className="mt-4 inline-block text-sm font-medium text-teal-700 underline"
+      >
+        View profile
+      </Link>
     </article>
   )
 }
