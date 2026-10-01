@@ -1,7 +1,7 @@
 import { formatLongDate, formatTime } from '../utils/time'
 import StatusBadge from './StatusBadge'
 
-export default function AppointmentCard({ appointment }) {
+export default function AppointmentCard({ appointment, onCancel }) {
   return (
     <article className="rounded-lg bg-white p-5 shadow">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -21,6 +21,15 @@ export default function AppointmentCard({ appointment }) {
 
       {appointment.reason && (
         <p className="mt-3 text-sm text-gray-500">Reason: {appointment.reason}</p>
+      )}
+
+      {onCancel && appointment.can_cancel && (
+        <button
+          onClick={() => onCancel(appointment)}
+          className="mt-4 text-sm text-red-600 underline"
+        >
+          Cancel appointment
+        </button>
       )}
     </article>
   )

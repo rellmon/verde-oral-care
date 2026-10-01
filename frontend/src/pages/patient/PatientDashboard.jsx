@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../api/axios'
 import AppointmentCard from '../../components/AppointmentCard'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { useAuth } from '../../context/AuthContext'
+import { formatLongDate, formatTime } from '../../utils/time'
 
 export default function PatientDashboard() {
   const { user, logout } = useAuth()
@@ -11,19 +13,61 @@ export default function PatientDashboard() {
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState(null)
+
+  // The appointment the patient is about to cancel (null = dialog closed)
+  const [cancelTarget, setCancelTarget] = useState(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState('')
+
+  const loadAppointments = useCallback(async () => {
+    try {
+      const [upcomingResponse, historyResponse] = await Promise.all([
+        api.get('/appointments', { params: { type: 'upcoming' } }),
+        api.get('/appointments', { params: { type: 'history' } }),
+      ])
+      setUpcoming(upcomingResponse.data.data)
+      setHistory(historyResponse.data.data)
+      setError('')
+    } catch {
+      setError('We could not load your appointments. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    Promise.all([
-      api.get('/appointments', { params: { type: 'upcoming' } }),
-      api.get('/appointments', { params: { type: 'history' } }),
-    ])
-      .then(([upcomingResponse, historyResponse]) => {
-        setUpcoming(upcomingResponse.data.data)
-        setHistory(historyResponse.data.data)
-      })
-      .catch(() => setError('We could not load your appointments. Please try again later.'))
-      .finally(() => setLoading(false))
-  }, [])
+    loadAppointments()
+  }, [loadAppointments])
+
+  function openCancelDialog(appointment) {
+    setCancelError('')
+    setCancelTarget(appointment)
+  }
+
+  function closeCancelDialog() {
+    setCancelTarget(null)
+  }
+
+  async function handleConfirmCancel() {
+    setCancelling(true)
+    setCancelError('')
+
+    try {
+      await api.patch(`/appointments/${cancelTarget.id}/cancel`)
+      setNotice({ type: 'success', text: 'Your appointment was cancelled.' })
+      setCancelTarget(null)
+      await loadAppointments()
+    } catch (err) {
+      // Laravel explains why (e.g. "can no longer be cancelled online"). Show it and refresh the lists.
+      setCancelError(
+        err.response?.data?.message ?? 'Something went wrong. Please try again.'
+      )
+      await loadAppointments()
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-teal-50 px-4 py-8">
@@ -48,6 +92,17 @@ export default function PatientDashboard() {
           Book an appointment
         </Link>
 
+        {notice && (
+          <p
+            role="status"
+            className={`mt-4 rounded p-3 text-sm ${
+              notice.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+            }`}
+          >
+            {notice.text}
+          </p>
+        )}
+
         {loading && <p className="mt-8 text-gray-600">Loading your appointments...</p>}
 
         {error && (
@@ -65,7 +120,11 @@ export default function PatientDashboard() {
               ) : (
                 <div className="mt-3 space-y-3">
                   {upcoming.map((appointment) => (
-                    <AppointmentCard key={appointment.id} appointment={appointment} />
+                    <AppointmentCard
+                      key={appointment.id}
+                      appointment={appointment}
+                      onCancel={openCancelDialog}
+                    />
                   ))}
                 </div>
               )}
@@ -86,6 +145,21 @@ export default function PatientDashboard() {
           </>
         )}
       </div>
+
+      {cancelTarget && (
+        <ConfirmDialog
+          title="Cancel this appointment?"
+          message={`${cancelTarget.service.name} with ${cancelTarget.dentist.name} on ${formatLongDate(
+            cancelTarget.appointment_date
+          )} at ${formatTime(cancelTarget.start_time)}. This cannot be undone, but you can book a new appointment at any time.`}
+          confirmLabel="Yes, cancel it"
+          cancelLabel="Keep appointment"
+          busy={cancelling}
+          error={cancelError}
+          onConfirm={handleConfirmCancel}
+          onCancel={closeCancelDialog}
+        />
+      )}
     </div>
   )
 }

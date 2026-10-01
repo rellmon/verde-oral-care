@@ -16,6 +16,7 @@ class AppointmentResource extends JsonResource
             'end_time' => substr($this->end_time, 0, 5),
             'reason' => $this->reason,
             'status' => $this->status,
+            'can_cancel' => $this->canBeCancelled(),
             'dentist' => $this->whenLoaded('dentist', fn () => [
                 'id' => $this->dentist->id,
                 'name' => $this->dentist->user->name,

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Gate;
 
 class AppointmentController extends Controller
 {
@@ -92,5 +93,26 @@ class AppointmentController extends Controller
         return (new AppointmentResource($appointment))
             ->response()
             ->setStatusCode(201);
+    }
+
+    public function cancel(Request $request, Appointment $appointment)
+    {
+        // 1. Authorization: is this the logged-in patient's own appointment? (AppointmentPolicy)
+        Gate::authorize('cancel', $appointment);
+
+        // 2. Business rule: is cancelling still allowed?
+        abort_unless(
+            $appointment->canBeCancelled(),
+            422,
+            'This appointment can no longer be cancelled online. Appointments can be cancelled while pending or confirmed, at least '
+                .Appointment::MIN_HOURS_BEFORE_CANCEL.' hours before the start time.'
+        );
+
+        $appointment->status = Appointment::STATUS_CANCELLED; // status is not mass-assignable
+        $appointment->save();
+
+        $appointment->load(['dentist.user', 'service']);
+
+        return new AppointmentResource($appointment);
     }
 }
