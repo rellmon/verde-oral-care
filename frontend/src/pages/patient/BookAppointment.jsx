@@ -1,20 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../api/axios'
-import { formatTime } from '../../utils/time'
+import { formatLongDate, formatTime } from '../../utils/time'
 
 // Today's date as YYYY-MM-DD in the browser's local time, used as the earliest pickable date.
 function getTodayString() {
   return new Date().toLocaleDateString('en-CA')
-}
-
-function formatLongDate(dateString) {
-  return new Date(`${dateString}T00:00`).toLocaleDateString('en-PH', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 }
 
 export default function BookAppointment() {
@@ -31,8 +22,21 @@ export default function BookAppointment() {
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [slotsError, setSlotsError] = useState('')
   const [selectedSlot, setSelectedSlot] = useState(null)
+  // Increasing this number makes the slots effect run again (used after a failed booking).
+  const [slotsRefreshKey, setSlotsRefreshKey] = useState(0)
+
+  const [reason, setReason] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [bookingErrors, setBookingErrors] = useState({})
+  const [bookingGeneralError, setBookingGeneralError] = useState('')
+  const [booked, setBooked] = useState(null)
 
   const choicesComplete = Boolean(serviceId && dentistId && date)
+
+  // Every error except the reason one is shown together in a banner above the button.
+  const otherBookingErrors = Object.entries(bookingErrors)
+    .filter(([field]) => field !== 'reason')
+    .flatMap(([, messages]) => messages)
 
   // Load the services and dentists for the dropdowns.
   useEffect(() => {
@@ -45,7 +49,7 @@ export default function BookAppointment() {
       .finally(() => setLoading(false))
   }, [])
 
-  // Whenever service, dentist or date changes, ask Laravel for the available slots.
+  // Whenever service, dentist or date changes (or a refresh is requested), ask Laravel for the slots.
   useEffect(() => {
     if (!serviceId || !dentistId || !date) {
       return
@@ -74,18 +78,115 @@ export default function BookAppointment() {
         if (!ignore) setSlotsLoading(false)
       })
 
-    // Cleanup: if the choices change again before this request finishes, ignore its result.
+    // Cleanup: if the inputs change again before this request finishes, ignore its result.
     return () => {
       ignore = true
     }
-  }, [serviceId, dentistId, date])
+  }, [serviceId, dentistId, date, slotsRefreshKey])
 
-  // Changing any choice clears the selected slot, because it may no longer be valid.
+  // Changing any choice clears the selected slot and old booking errors.
   function handleChange(setter) {
     return (event) => {
       setter(event.target.value)
       setSelectedSlot(null)
+      setBookingErrors({})
+      setBookingGeneralError('')
     }
+  }
+
+  async function handleBook(event) {
+    event.preventDefault()
+    setSubmitting(true)
+    setBookingErrors({})
+    setBookingGeneralError('')
+
+    try {
+      const response = await api.post('/appointments', {
+        dentist_id: Number(dentistId),
+        service_id: Number(serviceId),
+        appointment_date: date,
+        start_time: selectedSlot.start_time,
+        reason,
+      })
+      setBooked(response.data.data)
+    } catch (err) {
+      if (err.response?.status === 422) {
+        const errors = err.response.data.errors
+        setBookingErrors(errors)
+
+        // The slot was taken (or became invalid): drop the selection and reload the times.
+        if (errors.start_time) {
+          setSelectedSlot(null)
+          setSlotsRefreshKey((key) => key + 1)
+        }
+      } else {
+        setBookingGeneralError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function handleBookAnother() {
+    setBooked(null)
+    setSelectedSlot(null)
+    setReason('')
+    setBookingErrors({})
+    setBookingGeneralError('')
+    setSlotsRefreshKey((key) => key + 1) // reload so the slot we just booked disappears
+  }
+
+  if (booked) {
+    return (
+      <div className="min-h-screen bg-teal-50 px-4 py-8">
+        <div className="mx-auto max-w-2xl rounded-lg bg-white p-6 shadow">
+          <h1 className="text-2xl font-bold text-teal-700">Appointment requested</h1>
+          <p className="mt-2 text-gray-600">
+            Your appointment has been booked and is waiting for the clinic to confirm it.
+          </p>
+
+          <dl className="mt-6 divide-y divide-gray-100 text-sm">
+            <div className="flex justify-between py-2">
+              <dt className="font-medium text-gray-700">Service</dt>
+              <dd className="text-gray-900">{booked.service.name}</dd>
+            </div>
+            <div className="flex justify-between py-2">
+              <dt className="font-medium text-gray-700">Dentist</dt>
+              <dd className="text-gray-900">{booked.dentist.name}</dd>
+            </div>
+            <div className="flex justify-between py-2">
+              <dt className="font-medium text-gray-700">Date</dt>
+              <dd className="text-gray-900">{formatLongDate(booked.appointment_date)}</dd>
+            </div>
+            <div className="flex justify-between py-2">
+              <dt className="font-medium text-gray-700">Time</dt>
+              <dd className="text-gray-900">
+                {formatTime(booked.start_time)} to {formatTime(booked.end_time)}
+              </dd>
+            </div>
+            <div className="flex justify-between py-2">
+              <dt className="font-medium text-gray-700">Status</dt>
+              <dd className="capitalize text-gray-900">{booked.status}</dd>
+            </div>
+          </dl>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              onClick={handleBookAnother}
+              className="rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-700"
+            >
+              Book another appointment
+            </button>
+            <Link
+              to="/patient"
+              className="rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-50"
+            >
+              Back to dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -201,14 +302,58 @@ export default function BookAppointment() {
                     })}
                   </div>
                 )}
-
-                {selectedSlot && (
-                  <p className="mt-4 rounded bg-teal-50 p-3 text-sm text-teal-800">
-                    Selected: {formatLongDate(date)}, {formatTime(selectedSlot.start_time)} to{' '}
-                    {formatTime(selectedSlot.end_time)}
-                  </p>
-                )}
               </section>
+            )}
+
+            {otherBookingErrors.length > 0 && (
+              <div className="rounded bg-red-50 p-3 text-sm text-red-600" role="alert">
+                {otherBookingErrors.map((message) => (
+                  <p key={message}>{message}</p>
+                ))}
+              </div>
+            )}
+
+            {bookingGeneralError && (
+              <p className="rounded bg-red-50 p-3 text-sm text-red-600" role="alert">
+                {bookingGeneralError}
+              </p>
+            )}
+
+            {selectedSlot && (
+              <form onSubmit={handleBook} className="space-y-4 border-t border-gray-100 pt-4">
+                <p className="rounded bg-teal-50 p-3 text-sm text-teal-800">
+                  Selected: {formatLongDate(date)}, {formatTime(selectedSlot.start_time)} to{' '}
+                  {formatTime(selectedSlot.end_time)}
+                </p>
+
+                <div>
+                  <label htmlFor="reason" className="block text-sm font-medium text-gray-700">
+                    Reason for your visit
+                  </label>
+                  <textarea
+                    id="reason"
+                    rows={3}
+                    maxLength={1000}
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    required
+                    className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
+                  />
+                  {bookingErrors.reason && (
+                    <p className="mt-1 text-sm text-red-600" role="alert">
+                      {bookingErrors.reason[0]}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-700 disabled:opacity-60"
+                >
+                  {submitting ? 'Booking...' : 'Book appointment'}
+                </button>
+              </form>
             )}
           </div>
         )}

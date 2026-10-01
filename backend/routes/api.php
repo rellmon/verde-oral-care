@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
+    Route::get('/appointments', [AppointmentController::class, 'index']);
     Route::post('/appointments', [AppointmentController::class, 'store']);
 });
 

@@ -9,12 +9,45 @@ use App\Models\Appointment;
 use App\Models\Dentist;
 use App\Models\Service;
 use App\Services\AvailabilityService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class AppointmentController extends Controller
 {
+    public function index(Request $request)
+    {
+        $request->validate([
+            'type' => ['required', 'in:upcoming,history'],
+        ]);
+
+        // Start from the logged-in patient's own appointments, never from all appointments.
+        $patient = $request->user()->patient;
+        abort_unless($patient, 403, 'Your account has no patient profile.');
+
+        $today = Carbon::today()->toDateString();
+        $activeStatuses = [Appointment::STATUS_PENDING, Appointment::STATUS_CONFIRMED];
+
+        $query = $patient->appointments()->with(['dentist.user', 'service']);
+
+        if ($request->query('type') === 'upcoming') {
+            $query->whereDate('appointment_date', '>=', $today)
+                ->whereIn('status', $activeStatuses)
+                ->orderBy('appointment_date')
+                ->orderBy('start_time');
+        } else {
+            $query->where(function ($query) use ($today, $activeStatuses) {
+                $query->whereDate('appointment_date', '<', $today)
+                    ->orWhereNotIn('status', $activeStatuses);
+            })
+                ->orderByDesc('appointment_date')
+                ->orderByDesc('start_time');
+        }
+
+        return AppointmentResource::collection($query->get());
+    }
+
     public function store(StoreAppointmentRequest $request, AvailabilityService $availability)
     {
         // The patient comes from the logged-in user, never from the request body.
