@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\AdminDentistScheduleController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\PatientProfileController;
 use App\Http\Controllers\Api\DentistAppointmentController;
+use App\Http\Controllers\Api\DentistProfileController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -49,6 +50,7 @@ Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
 Route::middleware(['auth:sanctum', 'role:dentist'])->group(function () {
     Route::get('/dentist/appointments', [DentistAppointmentController::class, 'index']);
     Route::patch('/dentist/appointments/{appointment}', [DentistAppointmentController::class, 'update']);
+    Route::get('/dentist/profile', [DentistProfileController::class, 'show']);
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])
