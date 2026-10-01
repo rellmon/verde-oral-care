@@ -41,4 +41,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::delete('/services/{service}', [AdminServiceController::class, 'destroy']);
         Route::get('/dentists', [AdminDentistController::class, 'index']);
         Route::post('/dentists', [AdminDentistController::class, 'store']);
+        Route::put('/dentists/{dentist}', [AdminDentistController::class, 'update']);
     });

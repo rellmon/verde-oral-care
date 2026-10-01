@@ -50,4 +50,35 @@ class AdminDentistController extends Controller
             ->response()
             ->setStatusCode(201);
     }
+
+    public function update(AdminDentistRequest $request, Dentist $dentist)
+    {
+        $data = $request->validated();
+
+        DB::transaction(function () use ($data, $dentist) {
+            $user = $dentist->user;
+            $user->fill([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+            ]);
+
+            if (! empty($data['password'])) {
+                $user->password = Hash::make($data['password']);
+            }
+
+            $user->save();
+
+            $dentist->update([
+                'license_number' => $data['license_number'],
+                'specialization' => $data['specialization'],
+                'biography' => $data['biography'] ?? null,
+                'is_active' => $data['is_active'] ?? $dentist->is_active,
+            ]);
+        });
+
+        $dentist->load('user');
+
+        return new AdminDentistResource($dentist);
+    }
 }
