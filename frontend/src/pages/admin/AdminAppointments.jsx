@@ -1,0 +1,288 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import api from '../../api/axios'
+import StatusBadge from '../../components/StatusBadge'
+import { formatShortDate, formatTime } from '../../utils/time'
+
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'no_show', label: 'No-show' },
+]
+
+// The filters that are sent to the API only when they have a value.
+const FILTER_KEYS = ['status', 'dentist_id', 'date_from', 'date_to']
+
+const EMPTY_FILTERS = { status: '', dentist_id: '', date_from: '', date_to: '', sort: 'desc' }
+
+export default function AdminAppointments() {
+  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [page, setPage] = useState(1)
+
+  const [appointments, setAppointments] = useState([])
+  const [meta, setMeta] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const [dentists, setDentists] = useState([])
+
+  const hasActiveFilters = FILTER_KEYS.some((key) => filters[key])
+
+  // The dentist dropdown. If this fails the page still works, the dropdown just has no names.
+  useEffect(() => {
+    api
+      .get('/admin/dentists')
+      .then((response) => setDentists(response.data.data))
+      .catch(() => {})
+  }, [])
+
+  // Reload whenever a filter or the page changes.
+  useEffect(() => {
+    let ignore = false
+    setLoading(true)
+    setError('')
+
+    const params = { page, sort: filters.sort }
+    FILTER_KEYS.forEach((key) => {
+      if (filters[key]) params[key] = filters[key]
+    })
+
+    api
+      .get('/admin/appointments', { params })
+      .then((response) => {
+        if (!ignore) {
+          setAppointments(response.data.data)
+          setMeta(response.data.meta)
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setAppointments([])
+          setMeta(null)
+          setError(
+            err.response?.status === 422
+              ? Object.values(err.response.data.errors)[0][0]
+              : 'Could not load appointments. Please try again.'
+          )
+        }
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false)
+      })
+
+    // Cleanup: if the inputs change again before this request finishes, ignore its result.
+    return () => {
+      ignore = true
+    }
+  }, [filters, page])
+
+  function handleFilterChange(event) {
+    const { name, value } = event.target
+    setFilters({ ...filters, [name]: value })
+    setPage(1) // a new filter always starts from the first page
+  }
+
+  function clearFilters() {
+    setFilters(EMPTY_FILTERS)
+    setPage(1)
+  }
+
+  const inputClasses = 'mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm'
+
+  return (
+    <div className="min-h-screen bg-teal-50 px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        <Link to="/admin" className="text-sm text-teal-700 underline">
+          &larr; Back to dashboard
+        </Link>
+
+        <h1 className="mt-4 text-3xl font-bold text-teal-700">Appointments</h1>
+
+        <section
+          aria-label="Filters"
+          className="mt-6 grid gap-4 rounded-lg bg-white p-4 shadow sm:grid-cols-2 lg:grid-cols-5"
+        >
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              className={inputClasses}
+            >
+              <option value="">All statuses</option>
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="dentist_id" className="block text-sm font-medium text-gray-700">
+              Dentist
+            </label>
+            <select
+              id="dentist_id"
+              name="dentist_id"
+              value={filters.dentist_id}
+              onChange={handleFilterChange}
+              className={inputClasses}
+            >
+              <option value="">All dentists</option>
+              {dentists.map((dentist) => (
+                <option key={dentist.id} value={dentist.id}>
+                  {dentist.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="date_from" className="block text-sm font-medium text-gray-700">
+              From
+            </label>
+            <input
+              id="date_from"
+              name="date_from"
+              type="date"
+              value={filters.date_from}
+              onChange={handleFilterChange}
+              className={inputClasses}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="date_to" className="block text-sm font-medium text-gray-700">
+              To
+            </label>
+            <input
+              id="date_to"
+              name="date_to"
+              type="date"
+              min={filters.date_from}
+              value={filters.date_to}
+              onChange={handleFilterChange}
+              className={inputClasses}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="sort" className="block text-sm font-medium text-gray-700">
+              Order
+            </label>
+            <select
+              id="sort"
+              name="sort"
+              value={filters.sort}
+              onChange={handleFilterChange}
+              className={inputClasses}
+            >
+              <option value="desc">Newest first</option>
+              <option value="asc">Oldest first</option>
+            </select>
+          </div>
+        </section>
+
+        {hasActiveFilters && (
+          <button onClick={clearFilters} className="mt-3 text-sm text-teal-700 underline">
+            Clear filters
+          </button>
+        )}
+
+        {error && (
+          <p className="mt-6 rounded bg-red-50 p-3 text-red-600" role="alert">
+            {error}
+          </p>
+        )}
+
+        {loading && appointments.length === 0 && !error && (
+          <p className="mt-6 text-gray-600">Loading appointments...</p>
+        )}
+
+        {!loading && !error && appointments.length === 0 && (
+          <p className="mt-6 text-gray-600">No appointments match these filters.</p>
+        )}
+
+        {appointments.length > 0 && (
+          <>
+            <div
+              className={`mt-6 overflow-x-auto rounded-lg bg-white shadow ${
+                loading ? 'opacity-60' : ''
+              }`}
+            >
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-gray-50 text-gray-600">
+                  <tr>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Time</th>
+                    <th className="px-4 py-3">Patient</th>
+                    <th className="px-4 py-3">Dentist</th>
+                    <th className="px-4 py-3">Service</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map((appointment) => (
+                    <tr key={appointment.id} className="border-t border-gray-100">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {formatShortDate(appointment.appointment_date)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {formatTime(appointment.start_time)} - {formatTime(appointment.end_time)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-gray-900">{appointment.patient.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {appointment.patient.phone ?? 'No phone number'}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3">{appointment.dentist.name}</td>
+                      <td className="px-4 py-3">{appointment.service.name}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={appointment.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {meta && (
+              <nav
+                aria-label="Pagination"
+                className="mt-4 flex flex-wrap items-center justify-between gap-3"
+              >
+                <p className="text-sm text-gray-600">
+                  Page {meta.current_page} of {meta.last_page} ({meta.total} appointments)
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage((current) => current - 1)}
+                    disabled={meta.current_page <= 1 || loading}
+                    className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage((current) => current + 1)}
+                    disabled={meta.current_page >= meta.last_page || loading}
+                    className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </nav>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}

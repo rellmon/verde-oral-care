@@ -38,6 +38,12 @@ export default function AdminDashboard() {
 
         <nav aria-label="Management" className="mt-6 flex flex-wrap gap-2">
           <Link
+            to="/admin/appointments"
+            className="rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-100"
+          >
+            Appointments
+          </Link>
+          <Link
             to="/admin/services"
             className="rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-100"
           >

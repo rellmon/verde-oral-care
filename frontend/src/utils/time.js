@@ -15,3 +15,12 @@ export function formatLongDate(dateString) {
     day: 'numeric',
   })
 }
+
+// Turns "2026-10-05" into "Oct 5, 2026"
+export function formatShortDate(dateString) {
+  return new Date(`${dateString}T00:00`).toLocaleDateString('en-PH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
