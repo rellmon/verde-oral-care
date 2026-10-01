@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import DentistAppointmentCard from '../../components/dentist/DentistAppointmentCard'
@@ -153,6 +154,10 @@ export default function DentistDashboard() {
             Log out
           </button>
         </div>
+
+        <Link to="/dentist/profile" className="mt-4 inline-block text-sm text-teal-700 underline">
+          View my profile and working hours
+        </Link>
 
         {notice && (
           <p

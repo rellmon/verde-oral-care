@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import DentistDashboard from './pages/dentist/DentistDashboard'
+import MyProfile from './pages/dentist/MyProfile'
 import PatientDashboard from './pages/patient/PatientDashboard'
 import BookAppointment from './pages/patient/BookAppointment'
 import PatientProfile from './pages/patient/PatientProfile'
@@ -38,6 +39,7 @@ function App() {
 
       <Route element={<ProtectedRoute allowedRoles={['dentist']} />}>
         <Route path="/dentist" element={<DentistDashboard />} />
+        <Route path="/dentist/profile" element={<MyProfile />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
