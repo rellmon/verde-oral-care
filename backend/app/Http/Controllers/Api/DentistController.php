@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DentistResource;
 use App\Models\Dentist;
+use App\Http\Requests\AvailabilityRequest;
+use App\Models\Service;
+use App\Services\AvailabilityService;
+use Illuminate\Support\Carbon;
 
 class DentistController extends Controller
 {
@@ -18,7 +22,7 @@ class DentistController extends Controller
         return DentistResource::collection($dentists);
     }
 
-        public function show(Dentist $dentist)
+    public function show(Dentist $dentist)
     {
         abort_unless($dentist->is_active, 404);
 
@@ -28,5 +32,17 @@ class DentistController extends Controller
         ]);
 
         return new DentistResource($dentist);
+    }
+
+    public function availability(AvailabilityRequest $request, Dentist $dentist, AvailabilityService $availability)
+    {
+        abort_unless($dentist->is_active, 404);
+
+        $service = Service::findOrFail($request->validated('service_id'));
+        $date = Carbon::createFromFormat('Y-m-d', $request->validated('date'))->startOfDay();
+
+        return response()->json([
+            'data' => $availability->getAvailableSlots($dentist, $service, $date),
+        ]);
     }
 }

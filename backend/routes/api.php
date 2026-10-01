@@ -29,6 +29,8 @@ Route::get('/dentists', [DentistController::class, 'index']);
 
 Route::get('/dentists/{dentist}', [DentistController::class, 'show']);
 
+Route::get('/dentists/{dentist}/availability', [DentistController::class, 'availability']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
