@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\AdminServiceController;
+use App\Http\Controllers\Api\Admin\AdminDentistScheduleController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -42,4 +43,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::get('/dentists', [AdminDentistController::class, 'index']);
         Route::post('/dentists', [AdminDentistController::class, 'store']);
         Route::put('/dentists/{dentist}', [AdminDentistController::class, 'update']);
+        Route::get('/dentists/{dentist}/schedules', [AdminDentistScheduleController::class, 'index']);
+        Route::put('/dentists/{dentist}/schedules', [AdminDentistScheduleController::class, 'update']);
     });
