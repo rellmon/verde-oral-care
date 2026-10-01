@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:dentist'])->group(function () {
     Route::get('/dentist/appointments', [DentistAppointmentController::class, 'index']);
+    Route::patch('/dentist/appointments/{appointment}', [DentistAppointmentController::class, 'update']);
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])

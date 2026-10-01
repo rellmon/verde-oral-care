@@ -13,4 +13,11 @@ class AppointmentPolicy
         return $user->patient !== null
             && (int) $appointment->patient_id === (int) $user->patient->id;
     }
+
+    // A dentist may only update appointments that belong to them.
+    public function manageAsDentist(User $user, Appointment $appointment): bool
+    {
+        return $user->dentist !== null
+            && (int) $appointment->dentist_id === (int) $user->dentist->id;
+    }
 }

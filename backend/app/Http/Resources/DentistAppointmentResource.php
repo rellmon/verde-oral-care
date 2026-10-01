@@ -17,6 +17,7 @@ class DentistAppointmentResource extends JsonResource
             'reason' => $this->reason,
             'status' => $this->status,
             'dentist_notes' => $this->dentist_notes,
+            'available_statuses' => $this->availableStatuses(),
             // Only what the dentist needs to see: no email, address or emergency contact.
             'patient' => $this->whenLoaded('patient', fn () => [
                 'name' => $this->patient->user->name,

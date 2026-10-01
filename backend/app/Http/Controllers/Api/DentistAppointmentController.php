@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateDentistAppointmentRequest;
 use App\Http\Resources\DentistAppointmentResource;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class DentistAppointmentController extends Controller
 {
@@ -48,5 +51,39 @@ class DentistAppointmentController extends Controller
         }
 
         return DentistAppointmentResource::collection($query->get());
+    }
+
+    public function update(UpdateDentistAppointmentRequest $request, Appointment $appointment)
+    {
+        // 1. Authorization: is this one of the logged-in dentist's own appointments? (AppointmentPolicy)
+        Gate::authorize('manageAsDentist', $appointment);
+
+        $data = $request->validated();
+
+        if ($data === []) {
+            throw ValidationException::withMessages([
+                'status' => 'Send a new status, some notes, or both.',
+            ]);
+        }
+
+        // 2. Business rule: is this status change allowed right now?
+        if (isset($data['status']) && $data['status'] !== $appointment->status) {
+            $error = $appointment->statusChangeError($data['status']);
+
+            if ($error) {
+                throw ValidationException::withMessages(['status' => $error]);
+            }
+
+            $appointment->status = $data['status']; // status is not mass-assignable
+        }
+
+        if (array_key_exists('dentist_notes', $data)) {
+            $appointment->dentist_notes = $data['dentist_notes']; // not mass-assignable either
+        }
+
+        $appointment->save();
+        $appointment->load(['patient.user', 'service']);
+
+        return new DentistAppointmentResource($appointment);
     }
 }
