@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminDentistController;
 use App\Http\Controllers\Api\DentistController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\AuthController;
@@ -38,4 +39,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::post('/services', [AdminServiceController::class, 'store']);
         Route::put('/services/{service}', [AdminServiceController::class, 'update']);
         Route::delete('/services/{service}', [AdminServiceController::class, 'destroy']);
+        Route::get('/dentists', [AdminDentistController::class, 'index']);
     });
