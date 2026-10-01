@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import RescheduleForm from '../../components/admin/RescheduleForm'
+import Modal from '../../components/Modal'
 import StatusBadge from '../../components/StatusBadge'
 import { CHANGE_DIALOGS } from '../../utils/appointmentStatus'
 import { formatLongDate, formatShortDate, formatTime } from '../../utils/time'
@@ -45,6 +47,9 @@ export default function AdminAppointments() {
   const [pendingChange, setPendingChange] = useState(null)
   const [changing, setChanging] = useState(false)
   const [changeError, setChangeError] = useState('')
+
+    // The appointment being moved to a new time (null = modal closed)
+  const [rescheduleTarget, setRescheduleTarget] = useState(null)
 
   const hasActiveFilters = FILTER_KEYS.some((key) => filters[key])
 
@@ -153,6 +158,34 @@ export default function AdminAppointments() {
 
     setChangeError('')
     setPendingChange({ appointment, status })
+  }
+
+    function openReschedule(appointment) {
+    setNotice(null)
+    setRescheduleTarget(appointment)
+  }
+
+  // Returns null when the move worked, or an error message for the dialog to show.
+  async function handleReschedule(payload) {
+    try {
+      await api.patch(`/admin/appointments/${rescheduleTarget.id}/reschedule`, payload)
+      setNotice({ type: 'success', text: 'The appointment was rescheduled.' })
+      setRescheduleTarget(null)
+      setRefreshKey((key) => key + 1)
+      return null
+    } catch (err) {
+      // After a failure the list may be out of date too, so reload it.
+      setRefreshKey((key) => key + 1)
+
+      const errors = err.response?.data?.errors
+      return (
+        errors?.start_time?.[0] ??
+        errors?.appointment_date?.[0] ??
+        errors?.status?.[0] ??
+        err.response?.data?.message ??
+        'Something went wrong. Please try again.'
+      )
+    }
   }
 
   const inputClasses = 'mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm'
@@ -339,6 +372,15 @@ export default function AdminAppointments() {
                               {ACTION_BUTTONS[status].label}
                             </button>
                           ))}
+                            {appointment.can_reschedule && (
+                            <button
+                              onClick={() => openReschedule(appointment)}
+                              disabled={changing}
+                              className="rounded border border-teal-600 px-2.5 py-1 text-xs text-teal-700 hover:bg-teal-50 disabled:opacity-60"
+                            >
+                              Reschedule
+                            </button>
+                            )}
                         </div>
                       </td>
                     </tr>
@@ -377,7 +419,7 @@ export default function AdminAppointments() {
         )}
       </div>
 
-      {pendingChange && (
+        {pendingChange && (
         <ConfirmDialog
           title={dialogInfo.title}
           message={`${pendingChange.appointment.patient.name}, ${
@@ -392,6 +434,16 @@ export default function AdminAppointments() {
           onConfirm={() => changeStatus(pendingChange.appointment, pendingChange.status)}
           onCancel={() => setPendingChange(null)}
         />
+      )}
+
+      {rescheduleTarget && (
+        <Modal title="Reschedule appointment" onClose={() => setRescheduleTarget(null)}>
+          <RescheduleForm
+            appointment={rescheduleTarget}
+            onSubmit={handleReschedule}
+            onCancel={() => setRescheduleTarget(null)}
+          />
+        </Modal>
       )}
     </div>
   )

@@ -24,3 +24,8 @@ export function formatShortDate(dateString) {
     day: 'numeric',
   })
 }
+
+// Today's date as YYYY-MM-DD in the browser's local time (for date inputs).
+export function getTodayString() {
+  return new Date().toLocaleDateString('en-CA')
+}
