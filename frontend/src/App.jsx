@@ -8,6 +8,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import DentistDashboard from './pages/dentist/DentistDashboard'
 import PatientDashboard from './pages/patient/PatientDashboard'
 import Services from './pages/Services'
+import Dentists from './pages/Dentists'
 import AdminServices from './pages/admin/AdminServices'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/dentists" element={<Dentists />} />
 
       <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
         <Route path="/patient" element={<PatientDashboard />} />
