@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../../api/axios'
 import ServiceForm from '../../components/admin/ServiceForm'
 import Modal from '../../components/Modal'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const pesoFormatter = new Intl.NumberFormat('en-PH', {
   style: 'currency',
@@ -20,6 +21,11 @@ export default function AdminServices() {
   const [formErrors, setFormErrors] = useState({})
   const [formGeneralError, setFormGeneralError] = useState('')
   const [saving, setSaving] = useState(false)
+
+    // The service the admin is about to delete (null = dialog closed)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const loadServices = useCallback(async () => {
     try {
@@ -92,21 +98,24 @@ export default function AdminServices() {
     }
   }
 
-  async function handleDelete(service) {
-    // A simple browser confirmation for now; we will replace it with a proper dialog later.
-    if (!window.confirm(`Delete "${service.name}"? This cannot be undone.`)) {
-      return
-    }
+  function openDeleteDialog(service) {
+    setDeleteError('')
+    setDeleteTarget(service)
+  }
+
+  async function handleConfirmDelete() {
+    setDeleting(true)
+    setDeleteError('')
 
     try {
-      await api.delete(`/admin/services/${service.id}`)
-      setNotice({ type: 'success', text: `${service.name} was deleted.` })
+      await api.delete(`/admin/services/${deleteTarget.id}`)
+      setNotice({ type: 'success', text: `${deleteTarget.name} was deleted.` })
+      setDeleteTarget(null)
       await loadServices()
     } catch (err) {
-      setNotice({
-        type: 'error',
-        text: err.response?.data?.message || 'Could not delete the service.',
-      })
+      setDeleteError(err.response?.data?.message || 'Could not delete the service.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -193,7 +202,7 @@ export default function AdminServices() {
                         {service.is_active ? 'Deactivate' : 'Activate'}
                       </button>
                       <button
-                        onClick={() => handleDelete(service)}
+                        onClick={() => openDeleteDialog(service)}
                         className="text-red-600 underline"
                       >
                         Delete
@@ -218,6 +227,19 @@ export default function AdminServices() {
             onCancel={closeForm}
           />
         </Modal>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete this service?"
+          message={`"${deleteTarget.name}" will be permanently deleted. This cannot be undone. If you only want to hide it from patients, use Deactivate instead.`}
+          confirmLabel="Yes, delete"
+          cancelLabel="Keep service"
+          busy={deleting}
+          error={deleteError}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   )
