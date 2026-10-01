@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import StatusBadge from '../../components/StatusBadge'
-import { formatShortDate, formatTime } from '../../utils/time'
+import { CHANGE_DIALOGS } from '../../utils/appointmentStatus'
+import { formatLongDate, formatShortDate, formatTime } from '../../utils/time'
 
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
@@ -12,6 +14,14 @@ const STATUS_OPTIONS = [
   { value: 'no_show', label: 'No-show' },
 ]
 
+// Label and look of each action button. Which ones appear comes from the API (available_statuses).
+const ACTION_BUTTONS = {
+  confirmed: { label: 'Confirm', classes: 'bg-teal-600 text-white hover:bg-teal-700' },
+  completed: { label: 'Complete', classes: 'bg-teal-600 text-white hover:bg-teal-700' },
+  no_show: { label: 'No-show', classes: 'border border-gray-300 text-gray-700 hover:bg-gray-50' },
+  cancelled: { label: 'Cancel', classes: 'border border-red-300 text-red-600 hover:bg-red-50' },
+}
+
 // The filters that are sent to the API only when they have a value.
 const FILTER_KEYS = ['status', 'dentist_id', 'date_from', 'date_to']
 
@@ -20,13 +30,21 @@ const EMPTY_FILTERS = { status: '', dentist_id: '', date_from: '', date_to: '', 
 export default function AdminAppointments() {
   const [filters, setFilters] = useState(EMPTY_FILTERS)
   const [page, setPage] = useState(1)
+  // Increasing this number makes the list reload (used after a status change).
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const [appointments, setAppointments] = useState([])
   const [meta, setMeta] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState(null)
 
   const [dentists, setDentists] = useState([])
+
+  // A status change waiting for confirmation: { appointment, status } (null = dialog closed)
+  const [pendingChange, setPendingChange] = useState(null)
+  const [changing, setChanging] = useState(false)
+  const [changeError, setChangeError] = useState('')
 
   const hasActiveFilters = FILTER_KEYS.some((key) => filters[key])
 
@@ -38,7 +56,7 @@ export default function AdminAppointments() {
       .catch(() => {})
   }, [])
 
-  // Reload whenever a filter or the page changes.
+  // Reload whenever a filter, the page, or the refresh counter changes.
   useEffect(() => {
     let ignore = false
     setLoading(true)
@@ -52,10 +70,18 @@ export default function AdminAppointments() {
     api
       .get('/admin/appointments', { params })
       .then((response) => {
-        if (!ignore) {
-          setAppointments(response.data.data)
-          setMeta(response.data.meta)
+        if (ignore) return
+
+        const { data, meta: responseMeta } = response.data
+
+        // The last row of the last page changed status, so that page no longer exists. Go back one.
+        if (data.length === 0 && responseMeta.current_page > responseMeta.last_page) {
+          setPage(responseMeta.last_page)
+          return
         }
+
+        setAppointments(data)
+        setMeta(responseMeta)
       })
       .catch((err) => {
         if (!ignore) {
@@ -76,7 +102,7 @@ export default function AdminAppointments() {
     return () => {
       ignore = true
     }
-  }, [filters, page])
+  }, [filters, page, refreshKey])
 
   function handleFilterChange(event) {
     const { name, value } = event.target
@@ -89,7 +115,48 @@ export default function AdminAppointments() {
     setPage(1)
   }
 
+  async function changeStatus(appointment, status) {
+    setChanging(true)
+    setChangeError('')
+
+    try {
+      await api.patch(`/admin/appointments/${appointment.id}/status`, { status })
+      setNotice({ type: 'success', text: 'The appointment was updated.' })
+      setPendingChange(null)
+    } catch (err) {
+      // Laravel explains why (for example "has not started yet"). Show it where the admin is looking.
+      const message =
+        err.response?.data?.errors?.status?.[0] ??
+        err.response?.data?.message ??
+        'Something went wrong. Please try again.'
+
+      if (pendingChange) {
+        setChangeError(message)
+      } else {
+        setNotice({ type: 'error', text: message })
+      }
+    } finally {
+      // Success or failure, reload: after an error the page was probably out of date.
+      setRefreshKey((key) => key + 1)
+      setChanging(false)
+    }
+  }
+
+  function handleChangeStatus(appointment, status) {
+    setNotice(null)
+
+    // Confirming is routine, so it happens immediately. The other changes are final and ask first.
+    if (status === 'confirmed') {
+      changeStatus(appointment, status)
+      return
+    }
+
+    setChangeError('')
+    setPendingChange({ appointment, status })
+  }
+
   const inputClasses = 'mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm'
+  const dialogInfo = pendingChange ? CHANGE_DIALOGS[pendingChange.status] : null
 
   return (
     <div className="min-h-screen bg-teal-50 px-4 py-8">
@@ -196,6 +263,17 @@ export default function AdminAppointments() {
           </button>
         )}
 
+        {notice && (
+          <p
+            role="status"
+            className={`mt-4 rounded p-3 text-sm ${
+              notice.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+            }`}
+          >
+            {notice.text}
+          </p>
+        )}
+
         {error && (
           <p className="mt-6 rounded bg-red-50 p-3 text-red-600" role="alert">
             {error}
@@ -226,6 +304,7 @@ export default function AdminAppointments() {
                     <th className="px-4 py-3">Dentist</th>
                     <th className="px-4 py-3">Service</th>
                     <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -247,6 +326,20 @@ export default function AdminAppointments() {
                       <td className="px-4 py-3">{appointment.service.name}</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={appointment.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {appointment.available_statuses.map((status) => (
+                            <button
+                              key={status}
+                              onClick={() => handleChangeStatus(appointment, status)}
+                              disabled={changing}
+                              className={`rounded px-2.5 py-1 text-xs disabled:opacity-60 ${ACTION_BUTTONS[status].classes}`}
+                            >
+                              {ACTION_BUTTONS[status].label}
+                            </button>
+                          ))}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -283,6 +376,23 @@ export default function AdminAppointments() {
           </>
         )}
       </div>
+
+      {pendingChange && (
+        <ConfirmDialog
+          title={dialogInfo.title}
+          message={`${pendingChange.appointment.patient.name}, ${
+            pendingChange.appointment.service.name
+          } with ${pendingChange.appointment.dentist.name} on ${formatLongDate(
+            pendingChange.appointment.appointment_date
+          )} at ${formatTime(pendingChange.appointment.start_time)}. ${dialogInfo.note}`}
+          confirmLabel={dialogInfo.confirmLabel}
+          cancelLabel="Go back"
+          busy={changing}
+          error={changeError}
+          onConfirm={() => changeStatus(pendingChange.appointment, pendingChange.status)}
+          onCancel={() => setPendingChange(null)}
+        />
+      )}
     </div>
   )
 }

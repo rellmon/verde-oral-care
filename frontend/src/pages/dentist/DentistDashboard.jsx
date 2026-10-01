@@ -7,31 +7,13 @@ import NotesForm from '../../components/dentist/NotesForm'
 import Modal from '../../components/Modal'
 import { useAuth } from '../../context/AuthContext'
 import { formatLongDate, formatTime } from '../../utils/time'
+import { CHANGE_DIALOGS } from '../../utils/appointmentStatus'
 
 const TABS = [
   { key: 'today', label: 'Today', empty: 'No appointments today.' },
   { key: 'upcoming', label: 'Upcoming', empty: 'No upcoming appointments.' },
   { key: 'history', label: 'History', empty: 'Past appointments will appear here.' },
 ]
-
-// Wording of the confirmation dialog for each status that needs one.
-const CHANGE_DIALOGS = {
-  completed: {
-    title: 'Mark as completed?',
-    confirmLabel: 'Yes, mark completed',
-    note: 'This cannot be undone.',
-  },
-  no_show: {
-    title: 'Mark as no-show?',
-    confirmLabel: 'Yes, mark no-show',
-    note: 'This cannot be undone.',
-  },
-  cancelled: {
-    title: 'Cancel this appointment?',
-    confirmLabel: 'Yes, cancel it',
-    note: 'The time slot becomes available to other patients again. This cannot be undone.',
-  },
-}
 
 export default function DentistDashboard() {
   const { user, logout } = useAuth()

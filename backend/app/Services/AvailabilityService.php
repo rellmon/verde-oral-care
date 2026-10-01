@@ -15,9 +15,16 @@ class AvailabilityService
     /**
      * Returns the bookable slots for one dentist, one service and one date.
      * Each slot looks like ['start_time' => '09:00', 'end_time' => '09:30'].
+     *
+     * $ignoreAppointmentId lets an existing appointment be treated as not there,
+     * so it can be rescheduled without blocking itself.
      */
-    public function getAvailableSlots(Dentist $dentist, Service $service, Carbon $date): array
-    {
+    public function getAvailableSlots(
+        Dentist $dentist,
+        Service $service,
+        Carbon $date,
+        ?int $ignoreAppointmentId = null
+    ): array {
         // 1. Working hours for that weekday (0 = Sunday ... 6 = Saturday). No row = closed.
         $schedule = $dentist->schedules()
             ->where('day_of_week', $date->dayOfWeek)
@@ -35,6 +42,7 @@ class AvailabilityService
         $busy = Appointment::where('dentist_id', $dentist->id)
             ->whereDate('appointment_date', $date->toDateString())
             ->whereNotIn('status', [Appointment::STATUS_CANCELLED, Appointment::STATUS_NO_SHOW])
+            ->when($ignoreAppointmentId, fn ($query) => $query->where('id', '!=', $ignoreAppointmentId))
             ->get(['start_time', 'end_time'])
             ->map(fn ($appointment) => [
                 $this->toMinutes($appointment->start_time),

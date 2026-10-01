@@ -16,6 +16,8 @@ class AdminAppointmentResource extends JsonResource
             'end_time' => substr($this->end_time, 0, 5),
             'reason' => $this->reason,
             'status' => $this->status,
+            'available_statuses' => $this->availableStatuses(),
+            'can_reschedule' => $this->canBeRescheduled(),
             'patient' => $this->whenLoaded('patient', fn () => [
                 'id' => $this->patient->id,
                 'name' => $this->patient->user->name,

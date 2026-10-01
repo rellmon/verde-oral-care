@@ -101,4 +101,10 @@ class Appointment extends Model
             fn ($status) => $this->statusChangeError($status) === null
         ));
     }
+
+    // Only active appointments can be moved to a new time.
+    public function canBeRescheduled(): bool
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_CONFIRMED], true);
+    }
 }

@@ -69,4 +69,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::put('/dentists/{dentist}/schedules', [AdminDentistScheduleController::class, 'update']);
         Route::get('/stats', [AdminStatsController::class, 'index']);
         Route::get('/appointments', [AdminAppointmentController::class, 'index']);
+        Route::patch('/appointments/{appointment}/status', [AdminAppointmentController::class, 'updateStatus']);
+        Route::get('/appointments/{appointment}/slots', [AdminAppointmentController::class, 'slots']);
+        Route::patch('/appointments/{appointment}/reschedule', [AdminAppointmentController::class, 'reschedule']);
 });
