@@ -17,4 +17,13 @@ class DentistController extends Controller
 
         return DentistResource::collection($dentists);
     }
+
+        public function show(Dentist $dentist)
+    {
+        abort_unless($dentist->is_active, 404);
+
+        $dentist->load('user');
+
+        return new DentistResource($dentist);
+    }
 }

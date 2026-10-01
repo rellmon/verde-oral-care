@@ -25,6 +25,8 @@ Route::get('/services', [ServiceController::class, 'index']);
 
 Route::get('/dentists', [DentistController::class, 'index']);
 
+Route::get('/dentists/{dentist}', [DentistController::class, 'show']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
