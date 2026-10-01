@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import api from '../api/axios'
 import { getInitials } from '../utils/names'
+import { formatTime } from '../utils/time'
 
 // Display order: Monday first, Sunday last. Numbers match day_of_week in the database.
 const WEEK_DAYS = [
@@ -13,14 +14,6 @@ const WEEK_DAYS = [
   { number: 6, label: 'Saturday' },
   { number: 0, label: 'Sunday' },
 ]
-
-// Turns "13:00" into "1:00 PM"
-function formatTime(time) {
-  const [hours, minutes] = time.split(':').map(Number)
-  const period = hours >= 12 ? 'PM' : 'AM'
-  const displayHours = hours % 12 === 0 ? 12 : hours % 12
-  return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`
-}
 
 export default function DentistProfile() {
   const { id } = useParams()

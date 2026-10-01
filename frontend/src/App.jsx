@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import DentistDashboard from './pages/dentist/DentistDashboard'
 import PatientDashboard from './pages/patient/PatientDashboard'
+import BookAppointment from './pages/patient/BookAppointment'
 import Services from './pages/Services'
 import Dentists from './pages/Dentists'
 import DentistProfile from './pages/DentistProfile'
@@ -30,6 +31,7 @@ function App() {
 
       <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
         <Route path="/patient" element={<PatientDashboard />} />
+        <Route path="/patient/book" element={<BookAppointment />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['dentist']} />}>
