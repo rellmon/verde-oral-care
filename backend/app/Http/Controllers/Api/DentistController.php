@@ -22,7 +22,10 @@ class DentistController extends Controller
     {
         abort_unless($dentist->is_active, 404);
 
-        $dentist->load('user');
+        $dentist->load([
+            'user',
+            'schedules' => fn ($query) => $query->orderBy('day_of_week'),
+        ]);
 
         return new DentistResource($dentist);
     }

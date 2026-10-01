@@ -15,6 +15,7 @@ class DentistResource extends JsonResource
             'specialization' => $this->specialization,
             'biography' => $this->biography,
             'profile_image' => $this->profile_image,
+            'schedules' => DentistScheduleResource::collection($this->whenLoaded('schedules')),
         ];
     }
 }
