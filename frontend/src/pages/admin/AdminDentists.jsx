@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../api/axios'
 import DentistForm from '../../components/admin/DentistForm'
+import ScheduleForm from '../../components/admin/ScheduleForm'
 import Modal from '../../components/Modal'
 
 export default function AdminDentists() {
@@ -15,6 +16,14 @@ export default function AdminDentists() {
   const [formErrors, setFormErrors] = useState({})
   const [formGeneralError, setFormGeneralError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Schedule modal: the dentist being edited, their saved schedule, and form feedback
+  const [scheduleDentist, setScheduleDentist] = useState(null)
+  const [scheduleData, setScheduleData] = useState(null)
+  const [scheduleLoadError, setScheduleLoadError] = useState('')
+  const [scheduleErrors, setScheduleErrors] = useState({})
+  const [scheduleGeneralError, setScheduleGeneralError] = useState('')
+  const [scheduleSaving, setScheduleSaving] = useState(false)
 
   const loadDentists = useCallback(async () => {
     try {
@@ -65,6 +74,46 @@ export default function AdminDentists() {
       }
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function openSchedule(dentist) {
+    setScheduleErrors({})
+    setScheduleGeneralError('')
+    setScheduleLoadError('')
+    setScheduleData(null)
+    setScheduleDentist(dentist)
+
+    try {
+      const response = await api.get(`/admin/dentists/${dentist.id}/schedules`)
+      setScheduleData(response.data.data)
+    } catch {
+      setScheduleLoadError('Could not load the schedule. Please try again.')
+    }
+  }
+
+  function closeSchedule() {
+    setScheduleDentist(null)
+    setScheduleData(null)
+  }
+
+  async function handleScheduleSave(schedules) {
+    setScheduleSaving(true)
+    setScheduleErrors({})
+    setScheduleGeneralError('')
+
+    try {
+      await api.put(`/admin/dentists/${scheduleDentist.id}/schedules`, { schedules })
+      setNotice({ type: 'success', text: `Schedule updated for ${scheduleDentist.name}.` })
+      closeSchedule()
+    } catch (err) {
+      if (err.response?.status === 422) {
+        setScheduleErrors(err.response.data.errors)
+      } else {
+        setScheduleGeneralError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setScheduleSaving(false)
     }
   }
 
@@ -139,12 +188,18 @@ export default function AdminDentists() {
                         {dentist.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <td className="space-x-3 px-4 py-3 text-right whitespace-nowrap">
                       <button
                         onClick={() => openForm(dentist)}
                         className="text-teal-700 underline"
                       >
                         Edit
+                      </button>
+                      <button
+                        onClick={() => openSchedule(dentist)}
+                        className="text-teal-700 underline"
+                      >
+                        Schedule
                       </button>
                     </td>
                   </tr>
@@ -165,6 +220,41 @@ export default function AdminDentists() {
             onSubmit={handleSave}
             onCancel={closeForm}
           />
+        </Modal>
+      )}
+
+      {scheduleDentist && (
+        <Modal title={`Schedule: ${scheduleDentist.name}`} onClose={closeSchedule}>
+          {scheduleLoadError && (
+            <div>
+              <p className="rounded bg-red-50 p-2 text-sm text-red-600" role="alert">
+                {scheduleLoadError}
+              </p>
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={closeSchedule}
+                  className="rounded border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!scheduleLoadError && scheduleData === null && (
+            <p className="text-gray-600">Loading schedule...</p>
+          )}
+
+          {scheduleData !== null && (
+            <ScheduleForm
+              schedules={scheduleData}
+              errors={scheduleErrors}
+              generalError={scheduleGeneralError}
+              submitting={scheduleSaving}
+              onSubmit={handleScheduleSave}
+              onCancel={closeSchedule}
+            />
+          )}
         </Modal>
       )}
     </div>
