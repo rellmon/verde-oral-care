@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\AdminServiceController;
 use App\Http\Controllers\Api\Admin\AdminDentistScheduleController;
+use App\Http\Controllers\Api\AppointmentController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -33,6 +34,10 @@ Route::get('/dentists/{dentist}/availability', [DentistController::class, 'avail
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
+    Route::post('/appointments', [AppointmentController::class, 'store']);
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])
