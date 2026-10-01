@@ -44,8 +44,13 @@ export function AuthProvider({ children }) {
     }
   }
 
+    // Lets other pages update the logged-in user (for example after editing the profile).
+  function updateUser(changes) {
+    setUser((current) => ({ ...current, ...changes }))
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

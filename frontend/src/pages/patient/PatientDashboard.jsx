@@ -92,6 +92,13 @@ export default function PatientDashboard() {
           Book an appointment
         </Link>
 
+        <Link
+          to="/patient/profile"
+          className="ml-2 mt-6 inline-block rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-100"
+        >
+          My profile
+        </Link>
+
         {notice && (
           <p
             role="status"
