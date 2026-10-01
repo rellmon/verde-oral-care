@@ -15,6 +15,12 @@ export default function AdminDashboard() {
         >
           Manage services
         </Link>
+        <Link
+          to="/admin/dentists"
+          className="ml-2 inline-block rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-100"
+        >
+          Manage dentists
+        </Link>
         <button
           onClick={logout}
           className="rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-700"

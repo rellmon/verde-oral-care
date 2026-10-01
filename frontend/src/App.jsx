@@ -11,6 +11,7 @@ import Services from './pages/Services'
 import Dentists from './pages/Dentists'
 import DentistProfile from './pages/DentistProfile'
 import AdminServices from './pages/admin/AdminServices'
+import AdminDentists from './pages/admin/AdminDentists'
 
 function App() {
   const { loading } = useAuth()
@@ -38,6 +39,7 @@ function App() {
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/services" element={<AdminServices />} />
+        <Route path="/admin/dentists" element={<AdminDentists />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
