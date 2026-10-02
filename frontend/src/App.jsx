@@ -17,6 +17,7 @@ import AdminServices from './pages/admin/AdminServices'
 import AdminDentists from './pages/admin/AdminDentists'
 import AdminAppointments from './pages/admin/AdminAppointments'
 import AdminPatients from './pages/admin/AdminPatients'
+import PublicLayout from './components/PublicLayout'
 
 function App() {
   const { loading, sessionError, retrySession, sessionExpired, dismissSessionExpired } = useAuth()
@@ -59,11 +60,15 @@ function App() {
       )}
 
       <Routes>
-        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dentists" element={<Dentists />} />
-        <Route path="/dentists/:id" element={<DentistProfile />} />
+
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/dentists" element={<Dentists />} />
+          <Route path="/dentists/:id" element={<DentistProfile />} />
+        </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
           <Route path="/patient" element={<PatientDashboard />} />
@@ -86,7 +91,6 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
 
-        <Route path="/services" element={<Services />} />
       </Routes>
     </>
   )

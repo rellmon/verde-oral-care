@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import DentistCard from '../components/DentistCard'
 
@@ -17,14 +16,9 @@ export default function Dentists() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-teal-50 px-4 py-8">
-      <div className="mx-auto max-w-5xl">
-        <Link to="/" className="text-sm text-teal-700 underline">
-          &larr; Back to home
-        </Link>
-
-        <h1 className="mt-4 text-3xl font-bold text-teal-700">Our Dentists</h1>
-        <p className="mt-1 text-gray-600">Meet the team taking care of your smile.</p>
+      <div className="px-4 py-8">
+        <div className="mx-auto max-w-5xl">
+         <h1 className="text-3xl font-bold text-teal-700">Our Dentists</h1>
 
         {loading && <p className="mt-8 text-gray-600">Loading dentists...</p>}
 

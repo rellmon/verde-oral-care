@@ -6,7 +6,7 @@ export default function Home() {
   const { user, logout } = useAuth()
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-teal-50">
+    <div className="flex flex-col items-center justify-center gap-4 py-20">
       <h1 className="text-3xl font-bold text-teal-700">Verde Oral Care</h1>
 
       <Link to="/services" className="text-teal-700 underline">

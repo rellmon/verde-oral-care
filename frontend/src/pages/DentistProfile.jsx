@@ -25,7 +25,7 @@ export default function DentistProfile() {
   }, [id])
 
   return (
-    <div className="min-h-screen bg-teal-50 px-4 py-8">
+    <div className="px-4 py-8">
       <div className="mx-auto max-w-3xl">
         <Link to="/dentists" className="text-sm text-teal-700 underline">
           &larr; Back to dentists
