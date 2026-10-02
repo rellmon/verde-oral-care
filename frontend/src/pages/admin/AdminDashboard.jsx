@@ -44,6 +44,12 @@ export default function AdminDashboard() {
             Appointments
           </Link>
           <Link
+            to="/admin/patients"
+            className="rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-100"
+          >
+            Patients
+          </Link>
+          <Link
             to="/admin/services"
             className="rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-100"
           >

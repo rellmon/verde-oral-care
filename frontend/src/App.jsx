@@ -16,6 +16,7 @@ import DentistProfile from './pages/DentistProfile'
 import AdminServices from './pages/admin/AdminServices'
 import AdminDentists from './pages/admin/AdminDentists'
 import AdminAppointments from './pages/admin/AdminAppointments'
+import AdminPatients from './pages/admin/AdminPatients'
 
 function App() {
   const { loading } = useAuth()
@@ -48,6 +49,7 @@ function App() {
         <Route path="/admin/services" element={<AdminServices />} />
         <Route path="/admin/dentists" element={<AdminDentists />} />
         <Route path="/admin/appointments" element={<AdminAppointments />} />
+        <Route path="/admin/patients" element={<AdminPatients />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
