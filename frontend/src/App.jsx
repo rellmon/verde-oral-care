@@ -19,7 +19,7 @@ import AdminAppointments from './pages/admin/AdminAppointments'
 import AdminPatients from './pages/admin/AdminPatients'
 
 function App() {
-  const { loading, sessionError, retrySession } = useAuth()
+  const { loading, sessionError, retrySession, sessionExpired, dismissSessionExpired } = useAuth()
 
   if (loading) {
     return <p className="p-6 text-gray-600">Loading...</p>
@@ -44,37 +44,51 @@ function App() {
     )
   }
 
-  return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/dentists" element={<Dentists />} />
-      <Route path="/dentists/:id" element={<DentistProfile />} />
+    return (
+    <>
+      {sessionExpired && (
+        <div
+          role="alert"
+          className="flex items-center justify-center gap-3 bg-amber-100 px-4 py-2 text-sm text-amber-900"
+        >
+          <span>Your session has expired. Please log in again.</span>
+          <button onClick={dismissSessionExpired} className="underline">
+            Dismiss
+          </button>
+        </div>
+      )}
 
-      <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
-        <Route path="/patient" element={<PatientDashboard />} />
-        <Route path="/patient/book" element={<BookAppointment />} />
-        <Route path="/patient/profile" element={<PatientProfile />} />
-      </Route>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dentists" element={<Dentists />} />
+        <Route path="/dentists/:id" element={<DentistProfile />} />
 
-      <Route element={<ProtectedRoute allowedRoles={['dentist']} />}>
-        <Route path="/dentist" element={<DentistDashboard />} />
-        <Route path="/dentist/profile" element={<MyProfile />} />
-      </Route>
+        <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
+          <Route path="/patient" element={<PatientDashboard />} />
+          <Route path="/patient/book" element={<BookAppointment />} />
+          <Route path="/patient/profile" element={<PatientProfile />} />
+        </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/services" element={<AdminServices />} />
-        <Route path="/admin/dentists" element={<AdminDentists />} />
-        <Route path="/admin/appointments" element={<AdminAppointments />} />
-        <Route path="/admin/patients" element={<AdminPatients />} />
-      </Route>
+        <Route element={<ProtectedRoute allowedRoles={['dentist']} />}>
+          <Route path="/dentist" element={<DentistDashboard />} />
+          <Route path="/dentist/profile" element={<MyProfile />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/services" element={<AdminServices />} />
+          <Route path="/admin/dentists" element={<AdminDentists />} />
+          <Route path="/admin/appointments" element={<AdminAppointments />} />
+          <Route path="/admin/patients" element={<AdminPatients />} />
+        </Route>
 
-      <Route path="/services" element={<Services />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/services" element={<Services />} />
+      </Routes>
+    </>
   )
 }
 

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import api from '../api/axios'
+import api, { setUnauthorizedHandler } from '../api/axios'
 
 const AuthContext = createContext(null)
 
@@ -8,6 +8,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   // True when we could not find out who the saved token belongs to (server down, network error).
   const [sessionError, setSessionError] = useState(false)
+  // True when Laravel rejected our token, so the person has to log in again.
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   // If a token is saved, ask Laravel who it belongs to.
   const restoreSession = useCallback(async () => {
@@ -39,10 +41,22 @@ export function AuthProvider({ children }) {
     restoreSession()
   }, [restoreSession])
 
+  // When Laravel rejects our token at any point, forget the person and tell them why.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      localStorage.removeItem('token')
+      setUser(null)
+      setSessionExpired(true)
+    })
+
+    return () => setUnauthorizedHandler(null)
+  }, [])
+
   async function login(email, password) {
     const response = await api.post('/login', { email, password })
     localStorage.setItem('token', response.data.token)
     setUser(response.data.user)
+    setSessionExpired(false)
     return response.data.user
   }
 
@@ -50,6 +64,7 @@ export function AuthProvider({ children }) {
     const response = await api.post('/register', formData)
     localStorage.setItem('token', response.data.token)
     setUser(response.data.user)
+    setSessionExpired(false)
     return response.data.user
   }
 
@@ -74,6 +89,8 @@ export function AuthProvider({ children }) {
         loading,
         sessionError,
         retrySession: restoreSession,
+        sessionExpired,
+        dismissSessionExpired: () => setSessionExpired(false),
         login,
         register,
         logout,
