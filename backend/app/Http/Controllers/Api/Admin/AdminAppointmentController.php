@@ -37,11 +37,11 @@ class AdminAppointmentController extends Controller
         }
 
         if (isset($filters['date_from'])) {
-            $query->whereDate('appointment_date', '>=', $filters['date_from']);
+            $query->where('appointment_date', '>=', $filters['date_from']);
         }
 
         if (isset($filters['date_to'])) {
-            $query->whereDate('appointment_date', '<=', $filters['date_to']);
+            $query->where('appointment_date', '<=', $filters['date_to']);
         }
 
         $direction = $filters['sort'] ?? 'desc';

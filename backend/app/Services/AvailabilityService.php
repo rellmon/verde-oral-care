@@ -40,7 +40,7 @@ class AvailabilityService
 
         // 2. Time already taken on that date. Cancelled and no-show appointments don't block.
         $busy = Appointment::where('dentist_id', $dentist->id)
-            ->whereDate('appointment_date', $date->toDateString())
+            ->where('appointment_date', $date->toDateString())
             ->whereNotIn('status', [Appointment::STATUS_CANCELLED, Appointment::STATUS_NO_SHOW])
             ->when($ignoreAppointmentId, fn ($query) => $query->where('id', '!=', $ignoreAppointmentId))
             ->get(['start_time', 'end_time'])

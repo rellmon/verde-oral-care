@@ -30,19 +30,19 @@ class DentistAppointmentController extends Controller
         $query = $dentist->appointments()->with(['patient.user', 'service']);
 
         if ($type === 'today') {
-            $query->whereDate('appointment_date', $today)
+            $query->where('appointment_date', $today)
                 ->where('status', '!=', Appointment::STATUS_CANCELLED)
                 ->orderBy('start_time');
         } elseif ($type === 'upcoming') {
-            $query->whereDate('appointment_date', '>', $today)
+            $query->where('appointment_date', '>', $today)
                 ->whereIn('status', $activeStatuses)
                 ->orderBy('appointment_date')
                 ->orderBy('start_time');
         } else {
             $query->where(function ($query) use ($today, $activeStatuses) {
-                $query->whereDate('appointment_date', '<', $today)
+                $query->where('appointment_date', '<', $today)
                     ->orWhere(function ($query) use ($today, $activeStatuses) {
-                        $query->whereDate('appointment_date', '>', $today)
+                        $query->where('appointment_date', '>', $today)
                             ->whereNotIn('status', $activeStatuses);
                     });
             })

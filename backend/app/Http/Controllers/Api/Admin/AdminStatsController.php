@@ -31,14 +31,14 @@ class AdminStatsController extends Controller
 
         return response()->json([
             'data' => [
-                'appointments_today' => Appointment::whereDate('appointment_date', $today)
+                'appointments_today' => Appointment::where('appointment_date', $today)
                     ->where('status', '!=', Appointment::STATUS_CANCELLED)
                     ->count(),
                 'pending_confirmation' => Appointment::where('status', Appointment::STATUS_PENDING)
-                    ->whereDate('appointment_date', '>=', $today)
+                    ->where('appointment_date', '>=', $today)
                     ->count(),
-                'upcoming_week' => Appointment::whereDate('appointment_date', '>', $today)
-                    ->whereDate('appointment_date', '<=', $weekEnd)
+                'upcoming_week' => Appointment::where('appointment_date', '>', $today)
+                    ->where('appointment_date', '<=', $weekEnd)
                     ->whereIn('status', $activeStatuses)
                     ->count(),
                 'total_patients' => Patient::count(),
