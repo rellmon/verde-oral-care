@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    // Comma-separated list in .env. The defaults are the local development addresses.
+    'allowed_origins' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173'))
+    ))),
 
     'allowed_origins_patterns' => [],
 
@@ -27,8 +31,10 @@ return [
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    // Browsers may remember a preflight answer for 10 minutes.
+    'max_age' => 600,
 
-    'supports_credentials' => true,
+    // The app uses Bearer tokens in a header, never cookies, so this stays off.
+    'supports_credentials' => false,
 
 ];

@@ -19,17 +19,16 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/register', [AuthController::class, 'register']);
+// Public routes. Each has its own rate limit, counted per IP address.
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,60,register');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1,login');
 
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
-
-Route::get('/services', [ServiceController::class, 'index']);
-
-Route::get('/dentists', [DentistController::class, 'index']);
-
-Route::get('/dentists/{dentist}', [DentistController::class, 'show']);
-
-Route::get('/dentists/{dentist}/availability', [DentistController::class, 'availability']);
+Route::middleware('throttle:120,1,public')->group(function () {
+    Route::get('/services', [ServiceController::class, 'index']);
+    Route::get('/dentists', [DentistController::class, 'index']);
+    Route::get('/dentists/{dentist}', [DentistController::class, 'show']);
+    Route::get('/dentists/{dentist}/availability', [DentistController::class, 'availability']);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
