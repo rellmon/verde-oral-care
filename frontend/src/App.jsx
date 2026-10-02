@@ -18,6 +18,8 @@ import AdminDentists from './pages/admin/AdminDentists'
 import AdminAppointments from './pages/admin/AdminAppointments'
 import AdminPatients from './pages/admin/AdminPatients'
 import PublicLayout from './components/PublicLayout'
+import About from './pages/About'
+import Contact from './pages/Contact'
 
 function App() {
   const { loading, sessionError, retrySession, sessionExpired, dismissSessionExpired } = useAuth()
@@ -68,6 +70,8 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/dentists" element={<Dentists />} />
           <Route path="/dentists/:id" element={<DentistProfile />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['patient']} />}>

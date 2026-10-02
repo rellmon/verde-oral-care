@@ -7,6 +7,8 @@ const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
   { to: '/services', label: 'Services' },
   { to: '/dentists', label: 'Dentists' },
+  { to: '/about', label: 'About' },
+  { to: '/contact', label: 'Contact' },
 ]
 
 export default function PublicLayout() {
