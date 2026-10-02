@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\DentistAppointmentController;
 use App\Http\Controllers\Api\DentistProfileController;
 use App\Http\Controllers\Api\Admin\AdminStatsController;
 use App\Http\Controllers\Api\Admin\AdminAppointmentController;
+use App\Http\Controllers\Api\Admin\AdminPatientController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -72,4 +73,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::patch('/appointments/{appointment}/status', [AdminAppointmentController::class, 'updateStatus']);
         Route::get('/appointments/{appointment}/slots', [AdminAppointmentController::class, 'slots']);
         Route::patch('/appointments/{appointment}/reschedule', [AdminAppointmentController::class, 'reschedule']);
+        Route::get('/patients', [AdminPatientController::class, 'index']);
+        Route::get('/patients/{patient}', [AdminPatientController::class, 'show']);
 });
