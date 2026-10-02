@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+// role is deliberately not listed: it can never be set from a request.
 #[Fillable(['name', 'email', 'phone', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -23,14 +24,6 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-
-    protected $fillable = [
-    'name',
-    'email',
-    'phone',
-    'password',
-    ];
-
     protected function casts(): array
     {
         return [

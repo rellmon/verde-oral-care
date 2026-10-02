@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
-use App\Http\Requests\LoginRequest;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -29,13 +30,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->role,
-            ],
+            'user' => new UserResource($user),
             'token' => $token,
         ], 201);
     }
@@ -53,13 +48,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->role,
-            ],
+            'user' => new UserResource($user),
             'token' => $token,
         ]);
     }
@@ -71,5 +60,11 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logged out successfully.',
         ]);
+    }
+
+    // Who is the logged-in user? Used by the frontend to restore a session after a page refresh.
+    public function user(Request $request): UserResource
+    {
+        return new UserResource($request->user());
     }
 }

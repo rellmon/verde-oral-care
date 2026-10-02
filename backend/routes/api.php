@@ -4,7 +4,6 @@ use App\Http\Controllers\Api\Admin\AdminDentistController;
 use App\Http\Controllers\Api\DentistController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\AuthController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\AdminServiceController;
 use App\Http\Controllers\Api\Admin\AdminDentistScheduleController;
@@ -20,12 +19,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/ping', function () {
-    return response()->json([
-        'message' => 'Verde Oral Care API is running',
-    ]);
-});
-
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -39,6 +32,7 @@ Route::get('/dentists/{dentist}', [DentistController::class, 'show']);
 Route::get('/dentists/{dentist}/availability', [DentistController::class, 'availability']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
