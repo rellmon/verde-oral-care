@@ -19,10 +19,29 @@ import AdminAppointments from './pages/admin/AdminAppointments'
 import AdminPatients from './pages/admin/AdminPatients'
 
 function App() {
-  const { loading } = useAuth()
+  const { loading, sessionError, retrySession } = useAuth()
 
   if (loading) {
     return <p className="p-6 text-gray-600">Loading...</p>
+  }
+
+  if (sessionError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-teal-50 px-4">
+        <div className="max-w-md rounded-lg bg-white p-6 text-center shadow">
+          <h1 className="text-xl font-semibold text-teal-700">Something went wrong</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            We could not check your session. You are still signed in, so you can try again.
+          </p>
+          <button
+            onClick={retrySession}
+            className="mt-4 rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-700"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
