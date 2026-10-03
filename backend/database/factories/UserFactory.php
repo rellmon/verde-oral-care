@@ -18,7 +18,7 @@ class UserFactory extends Factory
     protected static ?string $password;
 
     /**
-     * Define the model's default state.
+     * Define the model's default state. A plain user is a patient.
      *
      * @return array<string, mixed>
      */
@@ -27,6 +27,8 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->numerify('09#########'),
+            'role' => 'patient',
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -41,5 +43,20 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'admin']);
+    }
+
+    public function dentist(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'dentist']);
+    }
+
+    public function patient(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'patient']);
     }
 }
