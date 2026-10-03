@@ -56,7 +56,8 @@ export default function PatientProfile() {
 
     try {
       // The email is shown but not sent: it cannot be changed here.
-      const { email, ...editableFields } = form
+      const editableFields = { ...form }
+      delete editableFields.email
       const response = await api.put('/patient/profile', editableFields)
       const saved = response.data.data
 
