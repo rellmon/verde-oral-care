@@ -30,6 +30,7 @@ class DentistAppointmentController extends Controller
         $query = $dentist->appointments()->with(['patient.user', 'service']);
 
         if ($type === 'today') {
+            // Everything on today's date except cancelled ones.
             $query->where('appointment_date', $today)
                 ->where('status', '!=', Appointment::STATUS_CANCELLED)
                 ->orderBy('start_time');
@@ -39,11 +40,17 @@ class DentistAppointmentController extends Controller
                 ->orderBy('appointment_date')
                 ->orderBy('start_time');
         } else {
+            // History: past dates, future appointments that are no longer active, and
+            // appointments cancelled today (the "today" tab leaves those out).
             $query->where(function ($query) use ($today, $activeStatuses) {
                 $query->where('appointment_date', '<', $today)
                     ->orWhere(function ($query) use ($today, $activeStatuses) {
                         $query->where('appointment_date', '>', $today)
                             ->whereNotIn('status', $activeStatuses);
+                    })
+                    ->orWhere(function ($query) use ($today) {
+                        $query->where('appointment_date', $today)
+                            ->where('status', Appointment::STATUS_CANCELLED);
                     });
             })
                 ->orderByDesc('appointment_date')
