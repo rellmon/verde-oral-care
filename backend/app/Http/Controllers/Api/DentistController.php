@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AvailabilityRequest;
 use App\Http\Resources\DentistResource;
 use App\Models\Dentist;
-use App\Http\Requests\AvailabilityRequest;
 use App\Models\Service;
 use App\Services\AvailabilityService;
 use Illuminate\Support\Carbon;

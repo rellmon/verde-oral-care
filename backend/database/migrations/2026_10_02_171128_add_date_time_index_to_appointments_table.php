@@ -17,6 +17,7 @@ return new class extends Migration
             $table->index(['appointment_date', 'start_time']);
         });
     }
+
     /**
      * Reverse the migrations.
      */

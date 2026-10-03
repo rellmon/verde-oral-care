@@ -9,9 +9,13 @@ use Illuminate\Support\Carbon;
 class Appointment extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_CONFIRMED = 'confirmed';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_NO_SHOW = 'no_show';
 
     // Online cancellation closes this many hours before the appointment starts.

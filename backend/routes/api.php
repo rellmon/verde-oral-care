@@ -1,19 +1,19 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\AdminDentistController;
-use App\Http\Controllers\Api\DentistController;
-use App\Http\Controllers\Api\ServiceController;
-use App\Http\Controllers\Api\AuthController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Admin\AdminServiceController;
-use App\Http\Controllers\Api\Admin\AdminDentistScheduleController;
-use App\Http\Controllers\Api\AppointmentController;
-use App\Http\Controllers\Api\PatientProfileController;
-use App\Http\Controllers\Api\DentistAppointmentController;
-use App\Http\Controllers\Api\DentistProfileController;
-use App\Http\Controllers\Api\Admin\AdminStatsController;
 use App\Http\Controllers\Api\Admin\AdminAppointmentController;
+use App\Http\Controllers\Api\Admin\AdminDentistController;
+use App\Http\Controllers\Api\Admin\AdminDentistScheduleController;
 use App\Http\Controllers\Api\Admin\AdminPatientController;
+use App\Http\Controllers\Api\Admin\AdminServiceController;
+use App\Http\Controllers\Api\Admin\AdminStatsController;
+use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DentistAppointmentController;
+use App\Http\Controllers\Api\DentistController;
+use App\Http\Controllers\Api\DentistProfileController;
+use App\Http\Controllers\Api\PatientProfileController;
+use App\Http\Controllers\Api\ServiceController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -68,4 +68,4 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::patch('/appointments/{appointment}/reschedule', [AdminAppointmentController::class, 'reschedule']);
         Route::get('/patients', [AdminPatientController::class, 'index']);
         Route::get('/patients/{patient}', [AdminPatientController::class, 'show']);
-});
+    });

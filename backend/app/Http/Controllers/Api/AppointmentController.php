@@ -12,8 +12,8 @@ use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class AppointmentController extends Controller
 {
