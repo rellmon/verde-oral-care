@@ -17,10 +17,6 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
-        languageOptions: {
-      globals: globals.browser,
-      parserOptions: { ecmaFeatures: { jsx: true } },
-    },
     rules: {
       // Our pages load data in an effect: set "loading", then fetch. React now warns about this
       // pattern and suggests a data-fetching library (TanStack Query or router loaders) instead.
